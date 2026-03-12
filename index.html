@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eldar Azimov — Cloud Administrator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep:    #060f1e;
+      --bg-mid:     #0a1628;
+      --bg-alt:     #0d1b2a;
+      --blue:       #0078d4;
+      --blue-light: #00b4d8;
+      --blue-dim:   rgba(0,120,212,0.12);
+      --border:     rgba(255,255,255,0.06);
+      --text-white: #f0f4f8;
+      --text-mid:   #94a3b8;
+      --text-dim:   #4b5a6e;
+      --emerald:    #34d399;
+      --radius-lg:  1rem;
+      --radius-xl:  1.25rem;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-mid);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, .brand { font-family: 'Syne', sans-serif; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--blue-dim); border-radius: 4px; }
+
+    /* ── NAVBAR ── */
+    #navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      transition: all .4s ease;
+    }
+    #navbar.scrolled {
+      background: rgba(6,15,30,0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 32px rgba(0,0,0,0.3);
+    }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      padding: 1.1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: .5rem;
+      text-decoration: none; color: var(--text-white);
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: .9rem;
+      letter-spacing: .05em;
+    }
+    .nav-logo svg { color: var(--blue); transition: color .3s; }
+    .nav-logo:hover svg { color: var(--blue-light); }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      text-decoration: none; color: var(--text-mid); font-size: .875rem;
+      position: relative; transition: color .3s;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; left: 0; bottom: -4px;
+      width: 0; height: 1.5px; background: var(--blue);
+      transition: width .3s;
+    }
+    .nav-links a:hover { color: var(--text-white); }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-mobile-btn {
+      display: none; background: none; border: none; cursor: pointer;
+      color: var(--text-mid); padding: .25rem; transition: color .3s;
+    }
+    .nav-mobile-btn:hover { color: var(--text-white); }
+
+    .nav-mobile-menu {
+      display: none;
+      background: rgba(6,15,30,0.96);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding: .5rem 1.5rem 1.25rem;
+    }
+    .nav-mobile-menu.open { display: block; }
+    .nav-mobile-menu a {
+      display: block; padding: .8rem 0;
+      text-decoration: none; color: var(--text-mid); font-size: .9rem;
+      border-bottom: 1px solid var(--border); transition: color .3s;
+    }
+    .nav-mobile-menu a:last-child { border-bottom: none; }
+    .nav-mobile-menu a:hover { color: var(--text-white); }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-mid); overflow: hidden;
+    }
+    #network-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none;
+    }
+    .hero-gradient {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 40%, var(--bg-mid));
+      pointer-events: none;
+    }
+    .hero-glow {
+      position: absolute; top: 33%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px; height: 600px; border-radius: 50%;
+      background: rgba(0,120,212,0.05);
+      filter: blur(120px); pointer-events: none;
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      text-align: center; padding: 0 1.5rem; max-width: 700px;
+      animation: fadeUp .9s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .35rem 1rem; border-radius: 999px;
+      border: 1px solid rgba(0,120,212,0.3);
+      background: rgba(0,120,212,0.06);
+      margin-bottom: 2rem;
+    }
+    .hero-badge-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--emerald);
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .5; transform: scale(1.3); }
+    }
+    .hero-badge span { font-size: .7rem; color: var(--text-mid); letter-spacing: .15em; text-transform: uppercase; }
+
+    .hero-name {
+      font-size: clamp(2.4rem, 7vw, 4.2rem);
+      font-weight: 800; color: var(--text-white);
+      line-height: 1.1; letter-spacing: -.02em;
+    }
+    .hero-role {
+      margin-top: 1rem; font-size: clamp(1rem, 2.5vw, 1.2rem);
+      color: var(--blue); font-weight: 500; letter-spacing: .04em;
+    }
+    .hero-role .sep { color: var(--text-dim); margin: 0 .5rem; }
+    .hero-sub {
+      margin-top: 1.25rem; font-size: 1rem; color: var(--text-mid);
+      line-height: 1.75; max-width: 480px; margin-left: auto; margin-right: auto;
+    }
+    .hero-ctas {
+      margin-top: 2.5rem; display: flex; flex-wrap: wrap;
+      align-items: center; justify-content: center; gap: 1rem;
+    }
+    .btn-primary {
+      display: inline-block; padding: .8rem 2rem;
+      border-radius: .6rem; background: var(--blue);
+      color: #fff; font-size: .875rem; font-weight: 500;
+      text-decoration: none; transition: all .3s;
+      box-shadow: 0 8px 24px rgba(0,120,212,0.25);
+    }
+    .btn-primary:hover {
+      background: #006cbd;
+      box-shadow: 0 12px 32px rgba(0,120,212,0.4);
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .8rem 2rem; border-radius: .6rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-mid); font-size: .875rem; font-weight: 500;
+      text-decoration: none; transition: all .3s;
+    }
+    .btn-ghost:hover {
+      border-color: rgba(0,120,212,0.4);
+      color: var(--text-white);
+    }
+    .hero-scroll {
+      position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+      animation: bounce 2s ease infinite; z-index: 2;
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      50%      { transform: translateX(-50%) translateY(8px); }
+    }
+
+    /* ── SECTION BASE ── */
+    section { padding: 6rem 1.5rem; }
+    .section-inner { max-width: 1000px; margin: 0 auto; }
+    .section-divider {
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(to right, transparent, rgba(0,120,212,0.2), transparent);
+    }
+    .section-label {
+      font-size: .7rem; letter-spacing: .3em; text-transform: uppercase;
+      color: var(--blue); font-weight: 600; margin-bottom: .6rem;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 700; color: var(--text-white);
+      margin-bottom: 3rem; letter-spacing: -.02em;
+    }
+
+    /* ── REVEAL ANIMATION ── */
+    .reveal {
+      opacity: 0; transform: translateY(32px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+    .reveal-delay-1 { transition-delay: .12s; }
+    .reveal-delay-2 { transition-delay: .24s; }
+    .reveal-delay-3 { transition-delay: .36s; }
+
+    /* ── ABOUT ── */
+    #about { position: relative; background: var(--bg-alt); }
+    .about-grid {
+      display: grid; grid-template-columns: 3fr 2fr; gap: 3rem;
+      align-items: start;
+    }
+    .about-text p {
+      line-height: 1.85; font-size: .95rem; color: var(--text-mid);
+      margin-bottom: 1.1rem;
+    }
+    .about-text p:last-child { margin-bottom: 0; }
+    .text-accent { color: var(--text-white); font-weight: 500; }
+    .pin-icon { display: inline-flex; align-items: center; gap: .25rem; }
+    .pin-icon svg { color: var(--blue); vertical-align: middle; }
+
+    .highlight-cards { display: flex; flex-direction: column; gap: .8rem; }
+    .highlight-card {
+      display: flex; align-items: center; gap: 1rem; padding: 1rem 1.2rem;
+      border-radius: .9rem;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.015);
+      transition: all .3s;
+    }
+    .highlight-card:hover {
+      border-color: rgba(0,120,212,0.3);
+      background: var(--blue-dim);
+    }
+    .highlight-icon {
+      width: 40px; height: 40px; border-radius: .6rem;
+      background: var(--blue-dim); display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; transition: background .3s;
+    }
+    .highlight-card:hover .highlight-icon { background: rgba(0,120,212,0.2); }
+    .highlight-icon svg { color: var(--blue); }
+    .highlight-label { font-size: .875rem; color: #cbd5e1; font-weight: 500; }
+
+    /* ── SKILLS ── */
+    #skills { position: relative; background: var(--bg-mid); }
+    .skills-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem; margin-bottom: 3.5rem;
+    }
+    .skill-card {
+      position: relative; padding: 1.5rem; border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.015);
+      transition: border-color .4s, background .4s; overflow: hidden;
+    }
+    .skill-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: var(--blue-dim); opacity: 0;
+      transition: opacity .4s; border-radius: var(--radius-xl);
+    }
+    .skill-card:hover::before { opacity: 1; }
+    .skill-card:hover { border-color: rgba(0,120,212,0.3); }
+    .skill-card-inner { position: relative; }
+    .skill-icon {
+      width: 48px; height: 48px; border-radius: .75rem;
+      background: var(--blue-dim); display: flex; align-items: center;
+      justify-content: center; margin-bottom: 1.2rem;
+      transition: background .3s;
+    }
+    .skill-card:hover .skill-icon { background: rgba(0,120,212,0.2); }
+    .skill-icon svg { color: var(--blue); }
+    .skill-title {
+      font-size: .95rem; font-weight: 600; color: var(--text-white); margin-bottom: .5rem;
+    }
+    .skill-desc { font-size: .825rem; color: var(--text-mid); line-height: 1.6; }
+
+    .certs-label {
+      font-size: .7rem; letter-spacing: .3em; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 600; margin-bottom: 1.2rem;
+    }
+    .certs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .cert-card {
+      display: flex; align-items: flex-start; gap: 1rem; padding: 1.2rem;
+      border-radius: .9rem; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.015);
+      transition: border-color .3s;
+    }
+    .cert-card:hover { border-color: rgba(255,255,255,0.1); }
+    .cert-icon {
+      width: 40px; height: 40px; border-radius: .6rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .cert-badge {
+      display: inline-block; font-size: .65rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      padding: .2rem .55rem; border-radius: 999px; margin-bottom: .5rem;
+    }
+    .cert-title { font-size: .825rem; font-weight: 500; color: #cbd5e1; line-height: 1.4; }
+
+    /* ── PROJECTS ── */
+    #projects { position: relative; background: var(--bg-alt); }
+    .projects-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem;
+    }
+    .project-card {
+      display: flex; flex-direction: column;
+      border-radius: var(--radius-xl); border: 1px solid var(--border);
+      background: rgba(255,255,255,0.015);
+      overflow: hidden; transition: border-color .4s;
+      position: relative;
+    }
+    .project-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(to right, transparent, rgba(0,120,212,0.5), transparent);
+      opacity: 0; transition: opacity .4s;
+    }
+    .project-card:hover { border-color: rgba(0,120,212,0.3); }
+    .project-card:hover::after { opacity: 1; }
+    .project-body { padding: 1.4rem; flex: 1; display: flex; flex-direction: column; }
+    .project-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .project-folder svg { color: rgba(0,120,212,0.5); transition: color .3s; }
+    .project-card:hover .project-folder svg { color: var(--blue); }
+    .project-gh {
+      color: var(--text-dim); text-decoration: none; transition: color .3s;
+    }
+    .project-gh:hover { color: var(--blue); }
+    .project-title {
+      font-size: .95rem; font-weight: 600; color: var(--text-white);
+      margin-bottom: .7rem; transition: color .3s;
+    }
+    .project-card:hover .project-title { color: var(--blue); }
+    .project-desc { font-size: .825rem; color: var(--text-mid); line-height: 1.65; flex: 1; }
+    .project-tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.2rem; }
+    .project-tag { font-size: .7rem; color: var(--text-dim); font-weight: 500; letter-spacing: .04em; }
+    .project-footer {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      padding: .9rem; border-top: 1px solid var(--border);
+      font-size: .8rem; color: var(--text-mid); text-decoration: none;
+      transition: all .3s;
+    }
+    .project-footer:hover { color: var(--text-white); background: rgba(255,255,255,0.02); }
+    .project-footer svg { width: 14px; height: 14px; }
+
+    /* ── CONTACT ── */
+    #contact { position: relative; background: var(--bg-mid); }
+    .contact-glow {
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 500px; height: 300px; border-radius: 50%;
+      background: rgba(0,120,212,0.04); filter: blur(100px); pointer-events: none;
+    }
+    .contact-inner { max-width: 700px; margin: 0 auto; text-align: center; }
+    .contact-sub {
+      font-size: .95rem; color: var(--text-mid); margin-bottom: 3rem; max-width: 400px;
+      margin-left: auto; margin-right: auto; line-height: 1.7;
+    }
+    .contact-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .contact-card {
+      display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.4rem;
+      border-radius: .9rem; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.015); text-decoration: none;
+      transition: all .3s;
+    }
+    .contact-card:hover {
+      border-color: rgba(0,120,212,0.3);
+      background: var(--blue-dim);
+    }
+    .contact-icon {
+      width: 44px; height: 44px; border-radius: .6rem;
+      background: var(--blue-dim); display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; transition: background .3s;
+    }
+    .contact-card:hover .contact-icon { background: rgba(0,120,212,0.2); }
+    .contact-icon svg { color: var(--blue); }
+    .contact-info { text-align: left; flex: 1; }
+    .contact-type {
+      font-size: .65rem; color: var(--text-dim); text-transform: uppercase;
+      letter-spacing: .12em; margin-bottom: .15rem;
+    }
+    .contact-value {
+      font-size: .85rem; color: #cbd5e1; transition: color .3s; font-weight: 500;
+    }
+    .contact-card:hover .contact-value { color: var(--text-white); }
+    .contact-arrow { color: var(--text-dim); margin-left: auto; transition: color .3s; }
+    .contact-card:hover .contact-arrow { color: var(--blue); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+    }
+    .footer-inner {
+      max-width: 1000px; margin: 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: space-between; gap: 1rem;
+    }
+    .footer-brand { display: flex; align-items: center; gap: .5rem; }
+    .footer-brand svg { color: rgba(0,120,212,0.5); }
+    .footer-brand span { font-size: .75rem; color: var(--text-dim); }
+    .footer-loc { display: flex; align-items: center; gap: .35rem; font-size: .75rem; color: var(--text-dim); }
+    .footer-copy { font-size: .75rem; color: var(--text-dim); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-mobile-btn { display: block; }
+      .about-grid { grid-template-columns: 1fr; }
+      .skills-grid { grid-template-columns: 1fr; }
+      .certs-grid { grid-template-columns: 1fr; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .contact-cards { grid-template-columns: 1fr; }
+      .footer-inner { flex-direction: column; text-align: center; }
+    }
+    @media (min-width: 769px) and (max-width: 960px) {
+      .skills-grid { grid-template-columns: 1fr 1fr; }
+      .projects-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-logo brand" onclick="smoothScroll(event,'#hero')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+        </svg>
+        EA
+      </a>
+      <ul class="nav-links">
+        <li><a href="#about"    onclick="smoothScroll(event,'#about')">About</a></li>
+        <li><a href="#skills"   onclick="smoothScroll(event,'#skills')">Skills</a></li>
+        <li><a href="#projects" onclick="smoothScroll(event,'#projects')">Projects</a></li>
+        <li><a href="#contact"  onclick="smoothScroll(event,'#contact')">Contact</a></li>
+      </ul>
+      <button class="nav-mobile-btn" onclick="toggleMobile()" aria-label="Toggle menu">
+        <svg id="icon-menu" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+        <svg id="icon-close" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="nav-mobile-menu" id="mobile-menu">
+      <a href="#about"    onclick="smoothScroll(event,'#about');toggleMobile()">About</a>
+      <a href="#skills"   onclick="smoothScroll(event,'#skills');toggleMobile()">Skills</a>
+      <a href="#projects" onclick="smoothScroll(event,'#projects');toggleMobile()">Projects</a>
+      <a href="#contact"  onclick="smoothScroll(event,'#contact');toggleMobile()">Contact</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <canvas id="network-canvas"></canvas>
+    <div class="hero-gradient"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        <span>Available for opportunities</span>
+      </div>
+      <h1 class="hero-name">Eldar Azimov</h1>
+      <p class="hero-role">
+        Cloud Administrator<span class="sep">|</span>Infrastructure &amp; Networking
+      </p>
+      <p class="hero-sub">
+        Currently pursuing a Postgraduate Degree in Cloud Architecture &amp; Administration at Seneca Polytechnic.
+      </p>
+      <div class="hero-ctas">
+        <a href="#contact" class="btn-primary" onclick="smoothScroll(event,'#contact')">Get in Touch</a>
+        <a href="https://www.linkedin.com/in/azimoveldar" target="_blank" rel="noopener noreferrer" class="btn-ghost">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>
+          </svg>
+          LinkedIn
+        </a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <svg width="20" height="20" fill="none" stroke="rgba(148,163,184,0.5)" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" style="position:relative">
+    <div class="section-divider"></div>
+    <div class="section-inner">
+      <div class="reveal">
+        <p class="section-label">About</p>
+        <h2 class="section-title">Who I Am</h2>
+      </div>
+      <div class="about-grid reveal">
+        <div class="about-text">
+          <p>
+            I am an IT professional based in
+            <span class="text-accent pin-icon">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              North York, Ontario
+            </span>,
+            with extensive experience as an <span class="text-accent">IT Manager</span> and <span class="text-accent">Network Engineer</span>.
+          </p>
+          <p>
+            My work focuses on maintaining hybrid cloud environments, diagnosing complex network issues, and managing end-to-end IT infrastructure for optimal performance, security, and scalability. I bring a methodical approach to solving infrastructure challenges and a passion for building resilient, cloud-native systems.
+          </p>
+          <p>
+            I am currently deepening my expertise through a Postgraduate program in Cloud Architecture &amp; Administration at Seneca Polytechnic, combining hands-on industry experience with cutting-edge academic knowledge.
+          </p>
+        </div>
+        <div class="highlight-cards">
+          <div class="highlight-card reveal reveal-delay-1">
+            <div class="highlight-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+            </div>
+            <span class="highlight-label">Hybrid Cloud Environments</span>
+          </div>
+          <div class="highlight-card reveal reveal-delay-2">
+            <div class="highlight-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            </div>
+            <span class="highlight-label">Network Diagnostics</span>
+          </div>
+          <div class="highlight-card reveal reveal-delay-3">
+            <div class="highlight-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <span class="highlight-label">IT Infrastructure Management</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills" style="position:relative">
+    <div class="section-divider"></div>
+    <div class="section-inner">
+      <div class="reveal">
+        <p class="section-label">Expertise</p>
+        <h2 class="section-title">Skills &amp; Certifications</h2>
+      </div>
+      <div class="skills-grid">
+        <div class="skill-card reveal">
+          <div class="skill-card-inner">
+            <div class="skill-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="skill-title">Azure Backup &amp; Recovery</div>
+            <div class="skill-desc">Implementing robust backup strategies and disaster recovery solutions across Azure environments.</div>
+          </div>
+        </div>
+        <div class="skill-card reveal reveal-delay-1">
+          <div class="skill-card-inner">
+            <div class="skill-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            </div>
+            <div class="skill-title">Azure Networking</div>
+            <div class="skill-desc">Designing and managing virtual networks, VPNs, load balancers, and network security groups.</div>
+          </div>
+        </div>
+        <div class="skill-card reveal reveal-delay-2">
+          <div class="skill-card-inner">
+            <div class="skill-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="skill-title">Azure Administration</div>
+            <div class="skill-desc">Managing subscriptions, resource groups, identity governance, and compliance policies.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <p class="certs-label">Certifications</p>
+        <div class="certs-grid">
+          <div class="cert-card">
+            <div class="cert-icon" style="background:rgba(0,120,212,0.1)">
+              <svg width="20" height="20" fill="none" stroke="#0078d4" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+            </div>
+            <div>
+              <span class="cert-badge" style="color:#0078d4;background:rgba(0,120,212,0.1)">AZ-104</span>
+              <p class="cert-title">Microsoft Certified: Azure Administrator Associate</p>
+            </div>
+          </div>
+          <div class="cert-card">
+            <div class="cert-icon" style="background:rgba(0,180,216,0.1)">
+              <svg width="20" height="20" fill="none" stroke="#00b4d8" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div>
+              <span class="cert-badge" style="color:#00b4d8;background:rgba(0,180,216,0.1)">Applied Skills</span>
+              <p class="cert-title">Microsoft Applied Skills: Configure secure access to your workloads using Azure networking</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects" style="position:relative">
+    <div class="section-divider"></div>
+    <div class="section-inner">
+      <div class="reveal">
+        <p class="section-label">Work</p>
+        <h2 class="section-title">Featured Projects</h2>
+      </div>
+      <div class="projects-grid">
+        <div class="project-card reveal">
+          <div class="project-body">
+            <div class="project-header">
+              <div class="project-folder">
+                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <a href="#" class="project-gh" title="View on GitHub">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              </a>
+            </div>
+            <div class="project-title">Azure Virtual Network Lab</div>
+            <div class="project-desc">Designed and deployed a multi-tier virtual network with subnets, NSGs, and peering across Azure regions for a simulated enterprise environment.</div>
+            <div class="project-tags">
+              <span class="project-tag">Azure</span>
+              <span class="project-tag">VNet</span>
+              <span class="project-tag">NSG</span>
+              <span class="project-tag">Peering</span>
+            </div>
+          </div>
+          <a href="#" class="project-footer">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <div class="project-card reveal reveal-delay-1">
+          <div class="project-body">
+            <div class="project-header">
+              <div class="project-folder">
+                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <a href="#" class="project-gh" title="View on GitHub">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              </a>
+            </div>
+            <div class="project-title">Hybrid Cloud Backup Solution</div>
+            <div class="project-desc">Implemented an automated Azure Backup &amp; Site Recovery solution for hybrid workloads, including policy management and disaster recovery testing.</div>
+            <div class="project-tags">
+              <span class="project-tag">Azure Backup</span>
+              <span class="project-tag">Site Recovery</span>
+              <span class="project-tag">Automation</span>
+            </div>
+          </div>
+          <a href="#" class="project-footer">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <div class="project-card reveal reveal-delay-2">
+          <div class="project-body">
+            <div class="project-header">
+              <div class="project-folder">
+                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <a href="#" class="project-gh" title="View on GitHub">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              </a>
+            </div>
+            <div class="project-title">Infrastructure Monitoring Dashboard</div>
+            <div class="project-desc">Built a centralized monitoring solution using Azure Monitor and Log Analytics to track resource health, performance metrics, and alert configurations.</div>
+            <div class="project-tags">
+              <span class="project-tag">Azure Monitor</span>
+              <span class="project-tag">Log Analytics</span>
+              <span class="project-tag">KQL</span>
+            </div>
+          </div>
+          <a href="#" class="project-footer">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" style="position:relative">
+    <div class="section-divider"></div>
+    <div class="contact-glow"></div>
+    <div class="contact-inner reveal">
+      <p class="section-label">Contact</p>
+      <h2 class="section-title" style="margin-bottom:.8rem">Let's Connect</h2>
+      <p class="contact-sub">I'm always open to discussing cloud architecture, networking challenges, or new opportunities.</p>
+      <div class="contact-cards">
+        <a href="mailto:azimoveldar085@gmail.com" class="contact-card">
+          <div class="contact-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div class="contact-info">
+            <div class="contact-type">Email</div>
+            <div class="contact-value">azimoveldar085@gmail.com</div>
+          </div>
+          <div class="contact-arrow">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </div>
+        </a>
+        <a href="https://www.linkedin.com/in/azimoveldar" target="_blank" rel="noopener noreferrer" class="contact-card">
+          <div class="contact-icon">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          </div>
+          <div class="contact-info">
+            <div class="contact-type">LinkedIn</div>
+            <div class="contact-value">in/azimoveldar</div>
+          </div>
+          <div class="contact-arrow">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+        <span>Eldar Azimov</span>
+      </div>
+      <div class="footer-loc">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        North York, Ontario
+      </div>
+      <div class="footer-copy">© <span id="year"></span> All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Smooth scroll
+    function smoothScroll(e, selector) {
+      e.preventDefault();
+      document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Mobile menu toggle
+    function toggleMobile() {
+      const menu = document.getElementById('mobile-menu');
+      const iconMenu = document.getElementById('icon-menu');
+      const iconClose = document.getElementById('icon-close');
+      const open = menu.classList.toggle('open');
+      iconMenu.style.display = open ? 'none' : 'block';
+      iconClose.style.display = open ? 'block' : 'none';
+    }
+
+    // Navbar scroll
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Network canvas
+    (function() {
+      const canvas = document.getElementById('network-canvas');
+      const ctx = canvas.getContext('2d');
+      let nodes = [], animId;
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      function init() {
+        nodes = [];
+        const count = Math.floor((canvas.width * canvas.height) / 22000);
+        for (let i = 0; i < count; i++) {
+          nodes.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.28,
+            vy: (Math.random() - 0.5) * 0.28,
+            r: Math.random() * 1.4 + 0.5,
+          });
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const dx = nodes[i].x - nodes[j].x;
+            const dy = nodes[i].y - nodes[j].y;
+            const d = Math.sqrt(dx*dx + dy*dy);
+            if (d < 150) {
+              ctx.beginPath();
+              ctx.strokeStyle = `rgba(0,120,212,${0.09*(1-d/150)})`;
+              ctx.lineWidth = 0.5;
+              ctx.moveTo(nodes[i].x, nodes[i].y);
+              ctx.lineTo(nodes[j].x, nodes[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+        nodes.forEach(n => {
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+          ctx.fillStyle = 'rgba(0,120,212,0.25)';
+          ctx.fill();
+          n.x += n.vx; n.y += n.vy;
+          if (n.x < 0 || n.x > canvas.width)  n.vx *= -1;
+          if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+        });
+        animId = requestAnimationFrame(draw);
+      }
+
+      resize(); init(); draw();
+      window.addEventListener('resize', () => { resize(); init(); });
+    })();
+  </script>
+</body>
+</html>
